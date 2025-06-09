@@ -1,0 +1,9 @@
+package com.erik.chatpp
+
+class Greeting {
+    private val platform = getPlatform()
+
+    fun greet(): String {
+        return "Hello, ${platform.name}!"
+    }
+}

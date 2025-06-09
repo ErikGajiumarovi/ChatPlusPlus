@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "109981339116",
+    "project_id": "messenger-c60de",
+    "storage_bucket": "messenger-c60de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:109981339116:android:4dab7855c87870854bc4c9",
+        "android_client_info": {
+          "package_name": "com.erik.chatpp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfkJwoIv5p5ImY0FA7VlzMs7XcsS2m0WY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
