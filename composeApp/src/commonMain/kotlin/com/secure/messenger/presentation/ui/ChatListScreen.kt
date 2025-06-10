@@ -3,9 +3,6 @@ package com.secure.messenger.presentation.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,9 +12,9 @@ import androidx.compose.ui.unit.dp
 import com.secure.messenger.data.model.Chat
 import com.secure.messenger.presentation.viewmodel.ChatListUiState
 import com.secure.messenger.presentation.viewmodel.ChatListViewModel
+import com.secure.messenger.ui.components.AppIcons
+import com.secure.messenger.util.DateFormatter
 import org.koin.compose.koinInject
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +25,7 @@ fun ChatListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showNewChatDialog by remember { mutableStateOf(false) }
+    val dateFormatter = remember { DateFormatter() }
 
     Scaffold(
         topBar = {
@@ -39,7 +37,7 @@ fun ChatListScreen(
                         onNavigateToLogin()
                     }) {
                         Icon(
-                            imageVector = Icons.Default.ExitToApp,
+                            imageVector = AppIcons.ExitToApp,
                             contentDescription = "Sign Out"
                         )
                     }
@@ -49,7 +47,7 @@ fun ChatListScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = { showNewChatDialog = true }) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    imageVector = AppIcons.Add,
                     contentDescription = "New Chat"
                 )
             }
@@ -126,6 +124,8 @@ private fun ChatItem(
     chat: Chat,
     onClick: () -> Unit
 ) {
+    val dateFormatter = remember { DateFormatter() }
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -156,9 +156,8 @@ private fun ChatItem(
                 )
 
                 if (chat.lastMessageTimestamp > 0) {
-                    val dateFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
                     val formattedTime = remember(chat.lastMessageTimestamp) {
-                        dateFormat.format(Date(chat.lastMessageTimestamp))
+                        dateFormatter.formatTime(chat.lastMessageTimestamp)
                     }
 
                     Text(

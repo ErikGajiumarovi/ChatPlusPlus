@@ -3,49 +3,107 @@ package com.secure.messenger.data
 import com.secure.messenger.data.model.Chat
 import com.secure.messenger.data.model.Message
 import com.secure.messenger.data.model.User
+import com.secure.messenger.util.TimeUtil
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 
-actual class FirebaseClient actual constructor() : FirebaseClientInterface {
+/**
+ * iOS реализация FirebaseClient
+ *
+ * Примечание: Это упрощенная реализация для запуска приложения на iOS.
+ * Для полноценной работы с Firebase на iOS понадобится интеграция с нативными библиотеками.
+ */
+actual class FirebaseClient : FirebaseClientInterface {
+
+    // Временное хранилище данных для локальной работы
+    private val currentUserFlow = MutableStateFlow<User?>(null)
+    private val messages = mutableListOf<Message>()
+    private val chats = mutableListOf<Chat>()
+
     actual override suspend fun signIn(
         email: String,
         password: String
     ): Result<User> {
-        TODO("Not yet implemented")
+        // Для тестирования создаем фиктивного пользователя
+        val user = User(
+            id = "ios-user-1",
+            email = email,
+            displayName = email.substringBefore('@')
+        )
+        currentUserFlow.value = user
+        return Result.success(user)
     }
 
     actual override suspend fun signUp(
         email: String,
         password: String
     ): Result<User> {
-        TODO("Not yet implemented")
+        // Для тестирования просто возвращаем нового пользователя
+        val user = User(
+            id = "ios-user-" + TimeUtil.currentTimeMillis(),
+            email = email,
+            displayName = email.substringBefore('@')
+        )
+        currentUserFlow.value = user
+        return Result.success(user)
+    }
+
+    actual override suspend fun signInAnonymously(): Result<User> {
+        // Создаем анонимного пользователя
+        val id = "anon-" + TimeUtil.currentTimeMillis()
+        val user = User(
+            id = id,
+            email = "",
+            displayName = "Гость ${id.takeLast(5)}"
+        )
+        currentUserFlow.value = user
+        return Result.success(user)
     }
 
     actual override suspend fun signOut() {
+        currentUserFlow.value = null
     }
 
     actual override suspend fun getCurrentUser(): User? {
-        TODO("Not yet implemented")
+        return currentUserFlow.value
     }
 
     actual override suspend fun sendMessage(message: Message) {
+        messages.add(message)
+
+        // Обновляем последнее сообщение в чате
+        val chatIndex = chats.indexOfFirst { it.id == message.chatId }
+        if (chatIndex >= 0) {
+            val chat = chats[chatIndex]
+            chats[chatIndex] = chat.copy(
+                lastMessageContent = message.content,
+                lastMessageTimestamp = message.timestamp
+            )
+        }
     }
 
     actual override fun observeMessages(chatId: String): Flow<List<Message>> {
-        TODO("Not yet implemented")
+        return flowOf(messages.filter { it.chatId == chatId })
     }
 
-    actual override suspend fun createChat(
-        participantIds: List<String>,
-        name: String?
-    ): String {
-        TODO("Not yet implemented")
+    actual override suspend fun createChat(participantIds: List<String>, name: String?): String {
+        val id = "chat-" + TimeUtil.currentTimeMillis()
+        val chat = Chat(
+            id = id,
+            participantIds = participantIds,
+            name = name,
+            isGroupChat = participantIds.size > 2
+        )
+        chats.add(chat)
+        return id
     }
 
     actual override fun observeUserChats(userId: String): Flow<List<Chat>> {
-        TODO("Not yet implemented")
+        return flowOf(chats.filter { it.participantIds.contains(userId) })
     }
 
     actual override suspend fun getChat(chatId: String): Chat? {
-        TODO("Not yet implemented")
+        return chats.find { it.id == chatId }
     }
 }

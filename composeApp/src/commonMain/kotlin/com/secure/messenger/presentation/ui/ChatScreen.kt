@@ -10,9 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,10 +22,10 @@ import com.secure.messenger.data.model.Message
 import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.presentation.viewmodel.ChatUiState
 import com.secure.messenger.presentation.viewmodel.ChatViewModel
+import com.secure.messenger.ui.components.AppIcons
+import com.secure.messenger.util.DateFormatter
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +41,7 @@ fun ChatScreen(
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val dateFormatter = remember { DateFormatter() }
 
     LaunchedEffect(uiState) {
         if (uiState is ChatUiState.Success) {
@@ -63,7 +61,7 @@ fun ChatScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = AppIcons.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -141,82 +139,54 @@ private fun MessageList(
 @Composable
 private fun MessageItem(
     message: Message,
-    isFromCurrentUser: Boolean
+    isFromCurrentUser: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    val dateFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val formattedTime = remember(message.timestamp) {
-        dateFormat.format(Date(message.timestamp))
+    val dateFormatter = remember { DateFormatter() }
+    val backgroundColor = if (isFromCurrentUser) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    val contentColor = if (isFromCurrentUser) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val alignment = if (isFromCurrentUser) {
+        Alignment.End
+    } else {
+        Alignment.Start
+    }
+    val shape = if (isFromCurrentUser) {
+        RoundedCornerShape(16.dp, 4.dp, 16.dp, 16.dp)
+    } else {
+        RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp)
     }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isFromCurrentUser) Arrangement.End else Arrangement.Start
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = alignment
     ) {
-        Column(
-            horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
+        Box(
+            modifier = Modifier
+                .clip(shape)
+                .background(backgroundColor)
+                .padding(12.dp)
         ) {
-            if (!isFromCurrentUser) {
-                Text(
-                    text = "User ${message.senderId.take(5)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
-                            bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
-                        )
-                    )
-                    .background(
-                        if (isFromCurrentUser) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.secondaryContainer
-                    )
-                    .padding(12.dp)
-            ) {
-                Column {
-                    Text(
-                        text = message.content,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = formattedTime,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.align(Alignment.End)
-                    )
-                }
-            }
-
-            if (message.isEncrypted) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.tertiary)
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "Encrypted",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
+            Text(
+                text = message.content,
+                color = contentColor
+            )
         }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+            text = dateFormatter.formatTime(message.timestamp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
     }
 }
 
@@ -256,7 +226,7 @@ private fun MessageInputBar(
                 enabled = value.isNotBlank()
             ) {
                 Icon(
-                    imageVector = Icons.Default.Send,
+                    imageVector = AppIcons.Send,
                     contentDescription = "Send",
                     tint = if (value.isNotBlank()) MaterialTheme.colorScheme.primary
                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
