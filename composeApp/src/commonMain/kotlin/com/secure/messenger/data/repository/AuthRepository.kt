@@ -14,16 +14,16 @@ class AuthRepository(private val firebaseClient: FirebaseClient) {
         _currentUser.value = firebaseClient.getCurrentUser()
     }
 
-    suspend fun signIn(username: String, password: String): Result<User> {
-        val result = firebaseClient.signIn(username, password)
+    suspend fun signIn(email: String, password: String): Result<User> {
+        val result = firebaseClient.signIn(email, password)
         if (result.isSuccess) {
             _currentUser.value = result.getOrNull()
         }
         return result
     }
 
-    suspend fun signUp(username: String, password: String): Result<User> {
-        val result = firebaseClient.signUp(username, password)
+    suspend fun signUp(email: String, password: String): Result<User> {
+        val result = firebaseClient.signUp(email, password)
         if (result.isSuccess) {
             _currentUser.value = result.getOrNull()
         }

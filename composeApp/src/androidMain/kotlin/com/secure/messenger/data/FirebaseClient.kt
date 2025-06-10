@@ -2,7 +2,6 @@ package com.secure.messenger.data
 
 import com.google.firebase.auth.FirebaseUser as GoogleFirebaseUser
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
@@ -20,28 +19,8 @@ actual class FirebaseClient : FirebaseClientInterface {
     private val firestore = Firebase.firestore
 
     // Authentication Methods
-    actual override suspend fun signIn(username: String, password: String): Result<User> {
+    actual override suspend fun signIn(email: String, password: String): Result<User> {
         return try {
-            // Сначала находим пользователя по username в Firestore
-            val querySnapshot = firestore.collection("users")
-                .whereEqualTo("username", username)
-                .get()
-                .await()
-
-            if (querySnapshot.isEmpty) {
-                return Result.failure(Exception("Пользователь не найден"))
-            }
-
-            // Получаем email из документа пользователя для авторизации
-            // (Firebase Auth все равно требует email)
-            val userDoc = querySnapshot.documents.first()
-            val email = userDoc.getString("email") ?: ""
-
-            if (email.isEmpty()) {
-                return Result.failure(Exception("Ошибка авторизации"))
-            }
-
-            // Авторизуемся с email и паролем
             val authResult = auth.signInWithEmailAndPassword(email, password).await()
             val user = getUserFromFirebaseUser(authResult.user!!)
             Result.success(user)
@@ -50,46 +29,19 @@ actual class FirebaseClient : FirebaseClientInterface {
         }
     }
 
-    actual override suspend fun signUp(username: String, password: String): Result<User> {
+    actual override suspend fun signUp(email: String, password: String): Result<User> {
         return try {
-            // Проверка, что username не занят
-            val querySnapshot = firestore.collection("users")
-                .whereEqualTo("username", username)
-                .get()
-                .await()
-
-            if (!querySnapshot.isEmpty) {
-                return Result.failure(Exception("Это имя пользователя уже занято"))
-            }
-
-            // Создаем email для Firebase Auth (требуется)
-            val email = "$username@chatplusplus.app"
-
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user!!
 
-            // Обновляем профиль пользователя
-            val profileUpdates = userProfileChangeRequest {
-                displayName = username
-            }
-            firebaseUser.updateProfile(profileUpdates).await()
-
-            // Создаем документ пользователя в Firestore
+            // Create user document in Firestore
             val user = User(
                 id = firebaseUser.uid,
-                username = username,
-                displayName = username
+                email = firebaseUser.email ?: "",
+                displayName = firebaseUser.displayName ?: email.substringBefore('@')
             )
 
-            // Сохраняем email в документе для будущей авторизации
-            val userData = mapOf(
-                "id" to user.id,
-                "username" to user.username,
-                "displayName" to user.displayName,
-                "email" to email
-            )
-
-            firestore.collection("users").document(user.id).set(userData).await()
+            firestore.collection("users").document(user.id).set(user).await()
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
@@ -104,7 +56,7 @@ actual class FirebaseClient : FirebaseClientInterface {
             // Создаем анонимного пользователя
             val user = User(
                 id = firebaseUser.uid,
-                username = "",
+                email = "",
                 displayName = "Гость ${firebaseUser.uid.takeLast(5)}" // Используем часть UID как имя гостя
             )
 
@@ -131,14 +83,14 @@ actual class FirebaseClient : FirebaseClientInterface {
         return if (userDoc.exists()) {
             User(
                 id = firebaseUser.uid,
-                username = userDoc.getString("username") ?: "",
-                displayName = userDoc.getString("displayName") ?: ""
+                email = firebaseUser.email ?: "",
+                displayName = userDoc.getString("displayName") ?: firebaseUser.displayName ?: firebaseUser.email?.substringBefore('@') ?: ""
             )
         } else {
             User(
                 id = firebaseUser.uid,
-                username = "",
-                displayName = firebaseUser.displayName ?: ""
+                email = firebaseUser.email ?: "",
+                displayName = firebaseUser.displayName ?: firebaseUser.email?.substringBefore('@') ?: ""
             )
         }
     }

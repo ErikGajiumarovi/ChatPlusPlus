@@ -20,7 +20,7 @@ fun LoginScreen(
     onNavigateToChats: () -> Unit,
     viewModel: LoginViewModel = koinInject()
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isSignUp by remember { mutableStateOf(false) }
@@ -41,18 +41,18 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = if (isSignUp) "Создать аккаунт" else "Вход",
+            text = if (isSignUp) "Create Account" else "Sign In",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Имя пользователя") },
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
+                keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             singleLine = true
@@ -63,7 +63,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Пароль") },
+            label = { Text("Password") },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
@@ -73,7 +73,7 @@ fun LoginScreen(
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (!isSignUp) {
-                        viewModel.signIn(username, password)
+                        viewModel.signIn(email, password)
                     }
                 }
             ),
@@ -86,7 +86,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = { Text("Подтвердите пароль") },
+                label = { Text("Confirm Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
@@ -95,7 +95,7 @@ fun LoginScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        viewModel.signUp(username, password, confirmPassword)
+                        viewModel.signUp(email, password, confirmPassword)
                     }
                 ),
                 singleLine = true
@@ -123,15 +123,15 @@ fun LoginScreen(
         Button(
             onClick = {
                 if (isSignUp) {
-                    viewModel.signUp(username, password, confirmPassword)
+                    viewModel.signUp(email, password, confirmPassword)
                 } else {
-                    viewModel.signIn(username, password)
+                    viewModel.signIn(email, password)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is LoginUiState.Loading
         ) {
-            Text(if (isSignUp) "Зарегистрироваться" else "Войти")
+            Text(if (isSignUp) "Sign Up" else "Sign In")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -142,7 +142,7 @@ fun LoginScreen(
                 viewModel.resetState()
             }
         ) {
-            Text(if (isSignUp) "Уже есть аккаунт? Войти" else "Нет аккаунта? Зарегистрироваться")
+            Text(if (isSignUp) "Already have an account? Sign In" else "Don't have an account? Sign Up")
         }
 
         // Добавляем разделитель
@@ -153,7 +153,7 @@ fun LoginScreen(
         ) {
             Divider(modifier = Modifier.weight(1f))
             Text(
-                text = "ИЛИ",
+                text = "OR",
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -168,7 +168,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is LoginUiState.Loading
         ) {
-            Text("Войти как гость")
+            Text("Sign in as Guest")
         }
     }
 }

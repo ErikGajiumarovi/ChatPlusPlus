@@ -23,41 +23,41 @@ class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun signIn(username: String, password: String) {
-        if (username.isBlank() || password.isBlank()) {
-            _uiState.value = LoginUiState.Error("Имя пользователя и пароль не могут быть пустыми")
+    fun signIn(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = LoginUiState.Error("Email and password cannot be empty")
             return
         }
 
         _uiState.value = LoginUiState.Loading
         viewModelScope.launch {
-            val result = authRepository.signIn(username, password)
+            val result = authRepository.signIn(email, password)
             _uiState.value = if (result.isSuccess) {
                 LoginUiState.Success(result.getOrNull()!!)
             } else {
-                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Ошибка авторизации")
+                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
             }
         }
     }
 
-    fun signUp(username: String, password: String, confirmPassword: String) {
-        if (username.isBlank() || password.isBlank()) {
-            _uiState.value = LoginUiState.Error("Имя пользователя и пароль не могут быть пустыми")
+    fun signUp(email: String, password: String, confirmPassword: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = LoginUiState.Error("Email and password cannot be empty")
             return
         }
 
         if (password != confirmPassword) {
-            _uiState.value = LoginUiState.Error("Пароли не совпадают")
+            _uiState.value = LoginUiState.Error("Passwords do not match")
             return
         }
 
         _uiState.value = LoginUiState.Loading
         viewModelScope.launch {
-            val result = authRepository.signUp(username, password)
+            val result = authRepository.signUp(email, password)
             _uiState.value = if (result.isSuccess) {
                 LoginUiState.Success(result.getOrNull()!!)
             } else {
-                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Ошибка регистрации")
+                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
             }
         }
     }
@@ -69,7 +69,7 @@ class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _uiState.value = if (result.isSuccess) {
                 LoginUiState.Success(result.getOrNull()!!)
             } else {
-                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Ошибка анонимной авторизации")
+                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Error with anonymous sign in")
             }
         }
     }

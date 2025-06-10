@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.Flow
 // Вся реализация будет в платформенно-специфичных модулях (androidMain, iosMain)
 expect class FirebaseClient() : FirebaseClientInterface {
     override suspend fun signIn(
-        username: String,
+        email: String,
         password: String
     ): Result<User>
 
     override suspend fun signUp(
-        username: String,
+        email: String,
         password: String
     ): Result<User>
 

@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 // Определяем общий интерфейс для всех платформ
 interface FirebaseClientInterface {
     // Authentication Methods
-    suspend fun signIn(username: String, password: String): Result<User>
-    suspend fun signUp(username: String, password: String): Result<User>
+    suspend fun signIn(email: String, password: String): Result<User>
+    suspend fun signUp(email: String, password: String): Result<User>
     suspend fun signInAnonymously(): Result<User> // Новый метод для анонимной авторизации
     suspend fun signOut()
     suspend fun getCurrentUser(): User?
