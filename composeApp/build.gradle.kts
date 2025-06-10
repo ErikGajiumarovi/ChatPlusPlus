@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    id("com.google.gms.google-services")
 }
 
 kotlin {
@@ -55,6 +56,10 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+
+            // Firebase Android dependencies
+            implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
+            implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -65,6 +70,18 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            // Firebase KMP
+            implementation("dev.gitlive:firebase-firestore:1.11.1")
+            implementation("dev.gitlive:firebase-auth:1.11.1")
+            implementation("dev.gitlive:firebase-common:1.11.1")
+
+            // Coroutines
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+            // DI
+            implementation("io.insert-koin:koin-core:3.5.0")
+            implementation("io.insert-koin:koin-compose:1.1.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -98,8 +115,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
-
-dependencies {
-    debugImplementation(compose.uiTooling)
-}
-

@@ -1,0 +1,72 @@
+package com.secure.messenger.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.secure.messenger.data.model.Message
+import com.secure.messenger.data.model.User
+import com.secure.messenger.data.repository.AuthRepository
+import com.secure.messenger.data.repository.MessagesRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+
+class ChatViewModel(
+    private val chatId: String,
+    private val authRepository: AuthRepository,
+    private val messagesRepository: MessagesRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow<ChatUiState>(ChatUiState.Loading)
+    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    private val _messageInput = MutableStateFlow("")
+    val messageInput: StateFlow<String> = _messageInput.asStateFlow()
+
+    init {
+        loadMessages()
+    }
+
+    private fun loadMessages() {
+        viewModelScope.launch {
+            try {
+                messagesRepository.observeMessages(chatId).collectLatest { messages ->
+                    _uiState.value = ChatUiState.Success(messages)
+                }
+            } catch (e: Exception) {
+                _uiState.value = ChatUiState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun onMessageInputChange(input: String) {
+        _messageInput.value = input
+    }
+
+    fun sendMessage() {
+        val messageContent = _messageInput.value.trim()
+        if (messageContent.isBlank()) return
+
+        viewModelScope.launch {
+            val result = messagesRepository.sendMessage(chatId, messageContent)
+            if (result.isSuccess) {
+                _messageInput.value = ""
+            } else {
+                _uiState.value = ChatUiState.Error(
+                    result.exceptionOrNull()?.message ?: "Failed to send message"
+                )
+            }
+        }
+    }
+
+    fun refresh() {
+        loadMessages()
+    }
+}
+
+sealed class ChatUiState {
+    object Loading : ChatUiState()
+    data class Success(val messages: List<Message>) : ChatUiState()
+    data class Error(val message: String) : ChatUiState()
+}
