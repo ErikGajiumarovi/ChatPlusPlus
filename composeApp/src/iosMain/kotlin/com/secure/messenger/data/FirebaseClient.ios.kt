@@ -125,4 +125,44 @@ actual class FirebaseClient : FirebaseClientInterface {
     actual override suspend fun getChat(chatId: String): Chat? {
         return chats.find { it.id == chatId }
     }
+
+    // Unread Messages Methods
+    actual override suspend fun markChatAsRead(chatId: String, userEmail: String) {
+        try {
+            // Находим чат в локальном хранилище
+            val chatIndex = chats.indexOfFirst { it.id == chatId }
+            if (chatIndex >= 0) {
+                val chat = chats[chatIndex]
+
+                // Обновляем timestamp последнего прочитанного сообщения для пользователя
+                val lastReadMap = chat.lastReadTimestamp.toMutableMap()
+                lastReadMap[userEmail] = System.currentTimeMillis()
+
+                // Заменяем чат обновленной версией со сброшенным счетчиком непрочитанных сообщений
+                chats[chatIndex] = chat.copy(
+                    lastReadTimestamp = lastReadMap,
+                    unreadCount = 0
+                )
+            }
+        } catch (e: Exception) {
+            println("Error marking chat as read: ${e.message}")
+        }
+    }
+
+    actual override suspend fun updateUnreadCount(chatId: String, senderEmail: String) {
+        try {
+            // Находим чат в локальном хранилище
+            val chatIndex = chats.indexOfFirst { it.id == chatId }
+            if (chatIndex >= 0) {
+                val chat = chats[chatIndex]
+
+                // Увеличиваем счетчик непрочитанных сообщений
+                chats[chatIndex] = chat.copy(
+                    unreadCount = chat.unreadCount + 1
+                )
+            }
+        } catch (e: Exception) {
+            println("Error updating unread count: ${e.message}")
+        }
+    }
 }

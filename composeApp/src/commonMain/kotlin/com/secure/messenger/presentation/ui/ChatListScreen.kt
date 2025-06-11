@@ -1,14 +1,17 @@
 package com.secure.messenger.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.secure.messenger.data.model.Chat
 import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.presentation.viewmodel.ChatListUiState
@@ -160,10 +163,38 @@ private fun ChatItem(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = displayName,
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Отображаем счетчик непрочитанных сообщений для текущего пользователя, если они есть
+                val unreadCount = chat.unreadMessagesByUser[currentUserEmail] ?: 0
+                if (unreadCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
 

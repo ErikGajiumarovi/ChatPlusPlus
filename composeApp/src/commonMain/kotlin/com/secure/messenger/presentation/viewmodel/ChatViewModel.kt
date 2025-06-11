@@ -46,6 +46,9 @@ class ChatViewModel(
     private fun loadMessages() {
         viewModelScope.launch {
             try {
+                // Отмечаем чат как прочитанный при открытии
+                messagesRepository.markChatAsRead(chatId)
+
                 messagesRepository.observeMessages(chatId).collectLatest { messages ->
                     _uiState.value = ChatUiState.Success(messages)
                 }

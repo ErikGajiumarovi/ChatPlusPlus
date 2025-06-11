@@ -19,6 +19,7 @@ class MessagesRepository(private val firebaseClient: FirebaseClient) {
             )
 
             firebaseClient.sendMessage(message)
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -48,5 +49,17 @@ class MessagesRepository(private val firebaseClient: FirebaseClient) {
 
     suspend fun getChat(chatId: String): com.secure.messenger.data.model.Chat? {
         return firebaseClient.getChat(chatId)
+    }
+
+    suspend fun markChatAsRead(chatId: String): Result<Unit> {
+        return try {
+            val currentUser = firebaseClient.getCurrentUser() ?:
+                return Result.failure(Exception("User not authenticated"))
+
+            firebaseClient.markChatAsRead(chatId, currentUser.email)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

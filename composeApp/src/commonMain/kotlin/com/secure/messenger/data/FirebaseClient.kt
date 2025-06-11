@@ -32,4 +32,7 @@ expect class FirebaseClient() : FirebaseClientInterface {
 
     override fun observeUserChats(userEmail: String): Flow<List<Chat>>
     override suspend fun getChat(chatId: String): Chat?
+
+    override suspend fun markChatAsRead(chatId: String, userEmail: String)
+    override suspend fun updateUnreadCount(chatId: String, senderEmail: String)
 }

@@ -6,5 +6,8 @@ data class Chat(
     val participantEmails: List<String> = emptyList(),
     val lastMessageContent: String? = null,
     val lastMessageTimestamp: Long = 0,
-    val isGroupChat: Boolean = false
+    val isGroupChat: Boolean = false,
+    val unreadCount: Int = 0,
+    val lastReadTimestamp: Map<String, Long> = emptyMap(),
+    val unreadMessagesByUser: Map<String, Int> = emptyMap()
 )

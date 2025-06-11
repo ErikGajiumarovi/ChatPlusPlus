@@ -25,6 +25,10 @@ interface FirebaseClientInterface {
     suspend fun createChat(participantEmails: List<String>, name: String? = null): String
     fun observeUserChats(userEmail: String): Flow<List<Chat>>
     suspend fun getChat(chatId: String): Chat?
+
+    // Unread Messages Methods
+    suspend fun markChatAsRead(chatId: String, userEmail: String)
+    suspend fun updateUnreadCount(chatId: String, senderEmail: String)
 }
 
 // Используем expect/actual паттерн для платформенно-специфичной реализации

@@ -118,6 +118,7 @@ actual class FirebaseClient : FirebaseClientInterface {
 
     // Message Methods
     actual override suspend fun sendMessage(message: Message) {
+        // Add message to Firestore
         firestore.collection("messages").add(message).await()
 
         // Update last message in chat
@@ -127,6 +128,9 @@ actual class FirebaseClient : FirebaseClientInterface {
                 "lastMessageTimestamp" to message.timestamp
             )
         ).await()
+
+        // After sending a message, update unread count for all participants except sender
+        updateUnreadCount(message.chatId, message.senderEmail)
     }
 
     actual override fun observeMessages(chatId: String): Flow<List<Message>> = callbackFlow {
@@ -197,6 +201,60 @@ actual class FirebaseClient : FirebaseClientInterface {
             chat?.copy(id = doc.id)
         } else {
             null
+        }
+    }
+
+    // Unread Messages Methods
+    actual override suspend fun markChatAsRead(chatId: String, userEmail: String) {
+        try {
+            // Получаем текущий чат
+            val chatDoc = firestore.collection("chats").document(chatId).get().await()
+            val chat = chatDoc.toObject(Chat::class.java) ?: return
+
+            // Обновляем timestamp последнего прочтения для конкретного пользователя
+            val lastReadMap = chat.lastReadTimestamp.toMutableMap()
+            lastReadMap[userEmail] = System.currentTimeMillis()
+
+            // Создаем мапу с непрочитанными сообщениями для каждого пользователя
+            val unreadCountMap = chat.unreadMessagesByUser.toMutableMap()
+            // Сбрасываем счетчик только для текущего пользователя
+            unreadCountMap[userEmail] = 0
+
+            // Обновляем в базе данных только поля для текущего пользователя
+            firestore.collection("chats").document(chatId).update(
+                mapOf(
+                    "lastReadTimestamp" to lastReadMap,
+                    "unreadMessagesByUser" to unreadCountMap
+                )
+            ).await()
+        } catch (e: Exception) {
+            println("Error marking chat as read: ${e.message}")
+        }
+    }
+
+    actual override suspend fun updateUnreadCount(chatId: String, senderEmail: String) {
+        try {
+            // Получаем текущий чат
+            val chatDoc = firestore.collection("chats").document(chatId).get().await()
+            val chat = chatDoc.toObject(Chat::class.java) ?: return
+
+            // Получаем текущие значения счетчиков для каждого пользователя
+            val unreadCountMap = chat.unreadMessagesByUser.toMutableMap()
+
+            // Увеличиваем счетчик для всех пользователей кроме отправителя
+            chat.participantEmails.forEach { participantEmail ->
+                if (participantEmail != senderEmail) {
+                    val currentCount = unreadCountMap[participantEmail] ?: 0
+                    unreadCountMap[participantEmail] = currentCount + 1
+                }
+            }
+
+            // Обновляем счетчики в базе данных
+            firestore.collection("chats").document(chatId).update(
+                "unreadMessagesByUser", unreadCountMap
+            ).await()
+        } catch (e: Exception) {
+            println("Error updating unread count: ${e.message}")
         }
     }
 }
