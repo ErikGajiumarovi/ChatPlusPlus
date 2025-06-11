@@ -9,6 +9,7 @@ import com.google.firebase.ktx.Firebase
 import com.secure.messenger.data.model.Chat
 import com.secure.messenger.data.model.Message
 import com.secure.messenger.data.model.User
+import com.secure.messenger.data.repository.ActiveChatTracker
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -241,11 +242,23 @@ actual class FirebaseClient : FirebaseClientInterface {
             // Получаем текущие значения счетчиков для каждого пользователя
             val unreadCountMap = chat.unreadMessagesByUser.toMutableMap()
 
-            // Увеличиваем счетчик для всех пользователей кроме отправителя
+            // Получаем текущего пользователя
+            val currentUser = getCurrentUser()
+            val currentUserEmail = currentUser?.email ?: ""
+
+            // Увеличиваем счетчик для всех пользователей, кроме отправителя
+            // и кроме текущего пользователя, если чат активен
             chat.participantEmails.forEach { participantEmail ->
                 if (participantEmail != senderEmail) {
-                    val currentCount = unreadCountMap[participantEmail] ?: 0
-                    unreadCountMap[participantEmail] = currentCount + 1
+                    // Проверяем, является ли этот участник текущим пользователем и активен ли чат
+                    val isCurrentUserInActiveChat =
+                        (participantEmail == currentUserEmail) && ActiveChatTracker.isActiveChat(chatId)
+
+                    // Увеличиваем счетчик только если это не текущий пользователь в активном чате
+                    if (!isCurrentUserInActiveChat) {
+                        val currentCount = unreadCountMap[participantEmail] ?: 0
+                        unreadCountMap[participantEmail] = currentCount + 1
+                    }
                 }
             }
 

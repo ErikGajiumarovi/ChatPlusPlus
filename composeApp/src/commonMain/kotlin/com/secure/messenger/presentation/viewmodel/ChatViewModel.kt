@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secure.messenger.data.model.Chat
 import com.secure.messenger.data.model.Message
+import com.secure.messenger.data.repository.ActiveChatTracker
 import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.data.repository.MessagesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +29,17 @@ class ChatViewModel(
     val chatData: StateFlow<Chat?> = _chatData.asStateFlow()
 
     init {
+        // Устанавливаем текущий чат как активный
+        ActiveChatTracker.setActiveChat(chatId)
+
         loadMessages()
         loadChatData()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Когда ViewModel уничтожается (чат закрывается), сбрасываем активный чат
+        ActiveChatTracker.setActiveChat(null)
     }
 
     private fun loadChatData() {
