@@ -32,7 +32,7 @@ object AppModule {
         single { MessagesRepository(get()) }
 
         // ViewModels
-        factory { LoginViewModel(get()) }
+        factory { LoginViewModel(get(), get()) }
         factory { ChatListViewModel(get(), get()) }
         factory { (chatId: String) -> ChatViewModel(chatId, get(), get()) }
     }
