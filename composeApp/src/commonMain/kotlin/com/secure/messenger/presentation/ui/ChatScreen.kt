@@ -37,11 +37,35 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val messageInput by viewModel.messageInput.collectAsState()
+    val chatData by viewModel.chatData.collectAsState()
     val currentUser by authRepository.currentUser.collectAsState()
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val dateFormatter = remember { DateFormatter() }
+
+    // Generate a display name for the chat
+    val chatDisplayName = remember(chatData) {
+        when {
+            // If chat has a custom name, use it
+            !chatData?.name.isNullOrBlank() -> chatData?.name
+
+            // For direct messages (2 participants), show the other person's email
+            chatData?.participantEmails?.size == 2 -> {
+                val otherParticipantEmail = chatData?.participantEmails?.firstOrNull {
+                    it != currentUser?.email
+                } ?: ""
+                if (otherParticipantEmail.isNotEmpty()) otherParticipantEmail else "Chat"
+            }
+
+            // For group chats, show participant count
+            chatData?.participantEmails?.isNotEmpty() == true ->
+                "Group (${chatData?.participantEmails?.size ?: 0} participants)"
+
+            // Fallback
+            else -> "Chat"
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is ChatUiState.Success) {
@@ -57,7 +81,7 @@ fun ChatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chat") },
+                title = { Text(chatDisplayName ?: "Chat") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

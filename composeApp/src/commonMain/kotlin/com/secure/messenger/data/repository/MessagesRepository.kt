@@ -45,4 +45,8 @@ class MessagesRepository(private val firebaseClient: FirebaseClient) {
     suspend fun getUserByEmail(email: String): User? {
         return firebaseClient.getUserByEmail(email)
     }
+
+    suspend fun getChat(chatId: String): com.secure.messenger.data.model.Chat? {
+        return firebaseClient.getChat(chatId)
+    }
 }

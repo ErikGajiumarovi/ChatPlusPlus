@@ -2,8 +2,8 @@ package com.secure.messenger.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.secure.messenger.data.model.Chat
 import com.secure.messenger.data.model.Message
-import com.secure.messenger.data.model.User
 import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.data.repository.MessagesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +24,23 @@ class ChatViewModel(
     private val _messageInput = MutableStateFlow("")
     val messageInput: StateFlow<String> = _messageInput.asStateFlow()
 
+    private val _chatData = MutableStateFlow<Chat?>(null)
+    val chatData: StateFlow<Chat?> = _chatData.asStateFlow()
+
     init {
         loadMessages()
+        loadChatData()
+    }
+
+    private fun loadChatData() {
+        viewModelScope.launch {
+            try {
+                val chat = messagesRepository.getChat(chatId)
+                _chatData.value = chat
+            } catch (e: Exception) {
+                // Chat data couldn't be loaded, but we can still show messages
+            }
+        }
     }
 
     private fun loadMessages() {
@@ -62,6 +77,7 @@ class ChatViewModel(
 
     fun refresh() {
         loadMessages()
+        loadChatData()
     }
 }
 

@@ -30,7 +30,7 @@ fun ChatListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Secure Messenger") },
+                title = { Text("Chat++") },
                 actions = {
                     IconButton(onClick = {
                         viewModel.signOut()
