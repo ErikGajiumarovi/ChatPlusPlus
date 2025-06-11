@@ -95,6 +95,27 @@ actual class FirebaseClient : FirebaseClientInterface {
         }
     }
 
+    actual override suspend fun getUserByEmail(email: String): User? {
+        try {
+            val querySnapshot = firestore.collection("users")
+                .whereEqualTo("email", email)
+                .limit(1)
+                .get()
+                .await()
+
+            if (querySnapshot.isEmpty) return null
+
+            val doc = querySnapshot.documents[0]
+            return User(
+                id = doc.id,
+                email = doc.getString("email") ?: "",
+                displayName = doc.getString("displayName") ?: ""
+            )
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
     // Message Methods
     actual override suspend fun sendMessage(message: Message) {
         firestore.collection("messages").add(message).await()
@@ -133,20 +154,20 @@ actual class FirebaseClient : FirebaseClientInterface {
     }
 
     // Chat Methods
-    actual override suspend fun createChat(participantIds: List<String>, name: String?): String {
+    actual override suspend fun createChat(participantEmails: List<String>, name: String?): String {
         val chat = Chat(
-            participantIds = participantIds,
+            participantEmails = participantEmails,
             name = name,
-            isGroupChat = participantIds.size > 2
+            isGroupChat = participantEmails.size > 2
         )
 
         val docRef = firestore.collection("chats").add(chat).await()
         return docRef.id
     }
 
-    actual override fun observeUserChats(userId: String): Flow<List<Chat>> = callbackFlow {
+    actual override fun observeUserChats(userEmail: String): Flow<List<Chat>> = callbackFlow {
         val listenerRegistration = firestore.collection("chats")
-            .whereArrayContains("participantIds", userId)
+            .whereArrayContains("participantEmails", userEmail)
             .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {

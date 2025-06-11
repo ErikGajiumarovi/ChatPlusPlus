@@ -136,7 +136,7 @@ private fun ChatItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = chat.name ?: "Chat with ${chat.participantIds.size} participants",
+                text = chat.name ?: "Chat with ${chat.participantEmails.size} participants",
                 style = MaterialTheme.typography.titleMedium
             )
 

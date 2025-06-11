@@ -3,7 +3,6 @@ package com.secure.messenger.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secure.messenger.data.model.Chat
-import com.secure.messenger.data.model.User
 import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.data.repository.MessagesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +32,8 @@ class ChatListViewModel(
             }
 
             try {
-                messagesRepository.observeUserChats(currentUser.id).collectLatest { chats ->
+                // Use email instead of ID for observing chats
+                messagesRepository.observeUserChats(currentUser.email).collectLatest { chats ->
                     _uiState.value = ChatListUiState.Success(chats)
                 }
             } catch (e: Exception) {
@@ -50,14 +50,11 @@ class ChatListViewModel(
                 return@launch
             }
 
-            // Create a list of all participant IDs including current user
-            val allParticipantIds = mutableListOf(currentUser.id)
+            // Create a list of all participant emails including current user
+            val allParticipantEmails = mutableListOf(currentUser.email)
+            allParticipantEmails.addAll(participantEmails)
 
-            // In a real app, you would search for users by email and add their IDs
-            // For this example, we'll just use emails as IDs for simplicity
-            allParticipantIds.addAll(participantEmails)
-
-            val result = messagesRepository.createChat(allParticipantIds, chatName)
+            val result = messagesRepository.createChat(allParticipantEmails, chatName)
             if (result.isFailure) {
                 _uiState.value = ChatListUiState.Error(
                     result.exceptionOrNull()?.message ?: "Failed to create chat"

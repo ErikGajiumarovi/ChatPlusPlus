@@ -22,13 +22,14 @@ expect class FirebaseClient() : FirebaseClientInterface {
 
     override suspend fun signOut()
     override suspend fun getCurrentUser(): User?
+    override suspend fun getUserByEmail(email: String): User?
     override suspend fun sendMessage(message: Message)
     override fun observeMessages(chatId: String): Flow<List<Message>>
     override suspend fun createChat(
-        participantIds: List<String>,
+        participantEmails: List<String>,
         name: String?
     ): String
 
-    override fun observeUserChats(userId: String): Flow<List<Chat>>
+    override fun observeUserChats(userEmail: String): Flow<List<Chat>>
     override suspend fun getChat(chatId: String): Chat?
 }

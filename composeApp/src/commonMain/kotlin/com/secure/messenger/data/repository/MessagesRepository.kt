@@ -14,7 +14,7 @@ class MessagesRepository(private val firebaseClient: FirebaseClient) {
 
             val message = Message(
                 chatId = chatId,
-                senderId = currentUser.id,
+                senderEmail = currentUser.email,
                 content = content
             )
 
@@ -29,16 +29,20 @@ class MessagesRepository(private val firebaseClient: FirebaseClient) {
         return firebaseClient.observeMessages(chatId)
     }
 
-    suspend fun createChat(participantIds: List<String>, chatName: String? = null): Result<String> {
+    suspend fun createChat(participantEmails: List<String>, chatName: String? = null): Result<String> {
         return try {
-            val chatId = firebaseClient.createChat(participantIds, chatName)
+            val chatId = firebaseClient.createChat(participantEmails, chatName)
             Result.success(chatId)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    fun observeUserChats(userId: String): Flow<List<com.secure.messenger.data.model.Chat>> {
-        return firebaseClient.observeUserChats(userId)
+    fun observeUserChats(userEmail: String): Flow<List<com.secure.messenger.data.model.Chat>> {
+        return firebaseClient.observeUserChats(userEmail)
+    }
+
+    suspend fun getUserByEmail(email: String): User? {
+        return firebaseClient.getUserByEmail(email)
     }
 }

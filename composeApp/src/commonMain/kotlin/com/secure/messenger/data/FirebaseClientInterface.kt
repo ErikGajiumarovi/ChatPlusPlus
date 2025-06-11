@@ -14,13 +14,16 @@ interface FirebaseClientInterface {
     suspend fun signOut()
     suspend fun getCurrentUser(): User?
 
+    // User Methods
+    suspend fun getUserByEmail(email: String): User?
+
     // Message Methods
     suspend fun sendMessage(message: Message)
     fun observeMessages(chatId: String): Flow<List<Message>>
 
     // Chat Methods
-    suspend fun createChat(participantIds: List<String>, name: String? = null): String
-    fun observeUserChats(userId: String): Flow<List<Chat>>
+    suspend fun createChat(participantEmails: List<String>, name: String? = null): String
+    fun observeUserChats(userEmail: String): Flow<List<Chat>>
     suspend fun getChat(chatId: String): Chat?
 }
 

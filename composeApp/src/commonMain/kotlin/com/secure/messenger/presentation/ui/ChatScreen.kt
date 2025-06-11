@@ -98,7 +98,6 @@ fun ChatScreen(
                     } else {
                         MessageList(
                             messages = state.messages,
-                            currentUserId = currentUser?.id ?: "",
                             listState = listState
                         )
                     }
@@ -118,9 +117,12 @@ fun ChatScreen(
 @Composable
 private fun MessageList(
     messages: List<Message>,
-    currentUserId: String,
     listState: LazyListState
 ) {
+    val authRepository = koinInject<AuthRepository>()
+    val currentUser by authRepository.currentUser.collectAsState()
+    val currentUserEmail = currentUser?.email ?: ""
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -130,7 +132,7 @@ private fun MessageList(
         items(messages) { message ->
             MessageItem(
                 message = message,
-                isFromCurrentUser = message.senderId == currentUserId
+                isFromCurrentUser = message.senderEmail == currentUserEmail
             )
         }
     }

@@ -20,6 +20,7 @@ actual class FirebaseClient : FirebaseClientInterface {
     private val currentUserFlow = MutableStateFlow<User?>(null)
     private val messages = mutableListOf<Message>()
     private val chats = mutableListOf<Chat>()
+    private val users = mutableListOf<User>() // Локальное хранилище пользователей для тестирования
 
     actual override suspend fun signIn(
         email: String,
@@ -32,6 +33,12 @@ actual class FirebaseClient : FirebaseClientInterface {
             displayName = email.substringBefore('@')
         )
         currentUserFlow.value = user
+
+        // Добавляем пользователя в локальное хранилище если его еще нет
+        if (users.none { it.email == email }) {
+            users.add(user)
+        }
+
         return Result.success(user)
     }
 
@@ -46,6 +53,10 @@ actual class FirebaseClient : FirebaseClientInterface {
             displayName = email.substringBefore('@')
         )
         currentUserFlow.value = user
+
+        // Добавляем пользователя в локальное хранилище
+        users.add(user)
+
         return Result.success(user)
     }
 
@@ -58,6 +69,10 @@ actual class FirebaseClient : FirebaseClientInterface {
             displayName = "Гость ${id.takeLast(5)}"
         )
         currentUserFlow.value = user
+
+        // Добавляем пользователя в локальное хранилище
+        users.add(user)
+
         return Result.success(user)
     }
 
@@ -67,6 +82,10 @@ actual class FirebaseClient : FirebaseClientInterface {
 
     actual override suspend fun getCurrentUser(): User? {
         return currentUserFlow.value
+    }
+
+    actual override suspend fun getUserByEmail(email: String): User? {
+        return users.find { it.email == email }
     }
 
     actual override suspend fun sendMessage(message: Message) {
@@ -87,20 +106,20 @@ actual class FirebaseClient : FirebaseClientInterface {
         return flowOf(messages.filter { it.chatId == chatId })
     }
 
-    actual override suspend fun createChat(participantIds: List<String>, name: String?): String {
+    actual override suspend fun createChat(participantEmails: List<String>, name: String?): String {
         val id = "chat-" + TimeUtil.currentTimeMillis()
         val chat = Chat(
             id = id,
-            participantIds = participantIds,
+            participantEmails = participantEmails,
             name = name,
-            isGroupChat = participantIds.size > 2
+            isGroupChat = participantEmails.size > 2
         )
         chats.add(chat)
         return id
     }
 
-    actual override fun observeUserChats(userId: String): Flow<List<Chat>> {
-        return flowOf(chats.filter { it.participantIds.contains(userId) })
+    actual override fun observeUserChats(userEmail: String): Flow<List<Chat>> {
+        return flowOf(chats.filter { it.participantEmails.contains(userEmail) })
     }
 
     actual override suspend fun getChat(chatId: String): Chat? {
