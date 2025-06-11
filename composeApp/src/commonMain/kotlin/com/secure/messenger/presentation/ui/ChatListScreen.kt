@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.secure.messenger.data.model.Chat
+import com.secure.messenger.data.repository.AuthRepository
 import com.secure.messenger.presentation.viewmodel.ChatListUiState
 import com.secure.messenger.presentation.viewmodel.ChatListViewModel
 import com.secure.messenger.ui.components.AppIcons
@@ -125,6 +126,30 @@ private fun ChatItem(
     onClick: () -> Unit
 ) {
     val dateFormatter = remember { DateFormatter() }
+    val authRepository = koinInject<AuthRepository>()
+    val currentUser by authRepository.currentUser.collectAsState()
+    val currentUserEmail = currentUser?.email ?: ""
+
+    // Определяем отображаемое имя чата
+    val displayName = remember(chat, currentUserEmail) {
+        when {
+            // Если у чата есть название, используем его
+            !chat.name.isNullOrBlank() -> chat.name
+
+            // Для личного чата с самим собой
+            chat.participantEmails.size == 1 && chat.participantEmails.contains(currentUserEmail) ->
+                "Мои заметки"
+
+            // Для чата с двумя участниками показываем email другого участника
+            chat.participantEmails.size == 2 -> {
+                chat.participantEmails.firstOrNull { it != currentUserEmail } ?:
+                    "Chat with ${chat.participantEmails.size} participants"
+            }
+
+            // Для групповых чатов
+            else -> "Chat with ${chat.participantEmails.size} participants"
+        }
+    }
 
     Card(
         onClick = onClick,
@@ -136,7 +161,7 @@ private fun ChatItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = chat.name ?: "Chat with ${chat.participantEmails.size} participants",
+                text = displayName,
                 style = MaterialTheme.typography.titleMedium
             )
 
