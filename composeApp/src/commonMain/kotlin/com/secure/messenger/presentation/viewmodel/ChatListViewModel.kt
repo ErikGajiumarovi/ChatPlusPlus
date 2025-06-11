@@ -50,6 +50,28 @@ class ChatListViewModel(
                 return@launch
             }
 
+            // Проверяем существование всех указанных пользователей
+            val nonExistingUsers = mutableListOf<String>()
+            for (email in participantEmails) {
+                if (email != currentUser.email) { // Пропускаем проверку текущего пользователя
+                    val user = messagesRepository.getUserByEmail(email)
+                    if (user == null) {
+                        nonExistingUsers.add(email)
+                    }
+                }
+            }
+
+            // Если есть несуществующие пользователи, показываем ошибку
+            if (nonExistingUsers.isNotEmpty()) {
+                val errorMessage = if (nonExistingUsers.size == 1) {
+                    "User with email ${nonExistingUsers[0]} does not exist"
+                } else {
+                    "The following users do not exist: ${nonExistingUsers.joinToString(", ")}"
+                }
+                _uiState.value = ChatListUiState.Error(errorMessage)
+                return@launch
+            }
+
             // Create a list of all participant emails including current user
             val allParticipantEmails = mutableListOf(currentUser.email)
             allParticipantEmails.addAll(participantEmails)
