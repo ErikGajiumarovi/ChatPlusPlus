@@ -10,13 +10,15 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     id("com.google.gms.google-services")
+
+    kotlin("plugin.serialization") version "1.9.20"
 }
 
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
     
@@ -36,10 +38,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-
-            // Firebase Android dependencies
-            implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
-            implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -52,22 +50,19 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             // Firebase KMP
-            implementation("dev.gitlive:firebase-firestore:1.11.1")
-            implementation("dev.gitlive:firebase-auth:1.11.1")
-            implementation("dev.gitlive:firebase-common:1.11.1")
+            implementation("dev.gitlive:firebase-firestore:2.1.0")
+            implementation("dev.gitlive:firebase-auth:2.1.0")
+            implementation("dev.gitlive:firebase-common:2.1.0")
 
             // Coroutines
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
             // DateTime
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
             // DI
             implementation("io.insert-koin:koin-core:3.5.0")
             implementation("io.insert-koin:koin-compose:1.1.0")
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
         }
     }
 }
@@ -94,7 +89,7 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
