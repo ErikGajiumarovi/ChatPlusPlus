@@ -160,15 +160,5 @@ fun LoginScreen(
             )
             Divider(modifier = Modifier.weight(1f))
         }
-
-        // Кнопка для анонимной авторизации
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(
-            onClick = { viewModel.signInAnonymously() },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = uiState !is LoginUiState.Loading
-        ) {
-            Text("Sign in as Guest")
-        }
     }
 }

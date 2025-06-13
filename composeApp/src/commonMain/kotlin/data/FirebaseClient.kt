@@ -11,7 +11,6 @@ import dev.gitlive.firebase.firestore.CollectionReference
 import dev.gitlive.firebase.firestore.Direction
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -51,27 +50,6 @@ class NewFirebaseClient {
             )
 
             usersCollection.document(user.id).set(user)
-            Result.success(user)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun signInAnonymously(): Result<User> {
-        return try {
-            val authResult = auth.signInAnonymously()
-            val firebaseUser = authResult.user!!
-
-            // Создаем анонимного пользователя
-            val user = User(
-                id = firebaseUser.uid,
-                email = "",
-                displayName = "Гость ${firebaseUser.uid.takeLast(5)}" // Используем часть UID как имя гостя
-            )
-
-            // Сохраняем информацию о пользователе в Firestore
-            usersCollection.document(user.id).set(user)
-
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
@@ -142,17 +120,19 @@ class NewFirebaseClient {
     }
 
     fun observeMessages(chatId: String): Flow<List<Message>> {
+        println("observeMessages | $chatId")
         return messagesCollection
             .orderBy("timestamp")
             .snapshots // this is suspend-based extension for dev.gitlive
             .map { snapshot ->
-                snapshot.documents.mapNotNull { documentSnapshot ->
+                snapshot.documents.mapNotNull { doc ->
                     try {
-                        println("Mapping document: ${documentSnapshot.id}")
-                        val a = documentSnapshot.data<Message>()
-                        if (a.chatId == chatId) {
-                            a
+                        println("Mapping document: ${doc.id}")
+                        val a = doc.data<Message>()
+                        if (a.chatId.equals(chatId)) {
+                            a.copy(id = doc.id)
                         } else {
+                            println("Document ${doc.id} with ${a.chatId} does not belong to chat $chatId, filtering out.")
                             null
                         }
                     } catch (e: Exception) {
@@ -161,7 +141,6 @@ class NewFirebaseClient {
                 }
             }
     }
-
 
     suspend fun createChat(
         participantEmails: List<String>,
@@ -185,8 +164,7 @@ class NewFirebaseClient {
     }
 
     fun observeUserChats(userEmail: String): Flow<List<Chat>> {
-        println(chatsCollection)
-        println("observeUserChats")
+        println("observeUserChats | $userEmail")
         return chatsCollection
             .orderBy("lastMessageTimestamp", Direction.DESCENDING)
             .snapshots
@@ -195,7 +173,12 @@ class NewFirebaseClient {
                     try {
                         val chat = doc.data<Chat>()
                         println("Mapping chat document: ${doc.id}")
-                        chat.copy(id = doc.id) // Copying with ID
+                        if (chat.participantEmails.contains(userEmail)) {
+                            chat.copy(id = doc.id)
+                        } else {
+                            println("Document ${doc.id} with ${chat.participantEmails} does not belong to userEmail $userEmail, filtering out.")
+                            null
+                        }
                     } catch (e: Exception) {
                         // --- Add detailed logging here ---
                         println("Error mapping chat document ${doc.id}: ${e.message}")

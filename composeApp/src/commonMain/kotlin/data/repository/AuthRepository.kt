@@ -31,14 +31,6 @@ class AuthRepository(private val firebaseClient: NewFirebaseClient) {
         return result
     }
 
-    suspend fun signInAnonymously(): Result<User> {
-        val result = firebaseClient.signInAnonymously()
-        if (result.isSuccess) {
-            _currentUser.value = result.getOrNull()
-        }
-        return result
-    }
-
     suspend fun signOut() {
         firebaseClient.signOut()
         _currentUser.value = null

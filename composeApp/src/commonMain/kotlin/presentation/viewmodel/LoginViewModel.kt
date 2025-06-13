@@ -109,18 +109,6 @@ class LoginViewModel(
         }
     }
 
-    fun signInAnonymously() {
-        _uiState.value = LoginUiState.Loading
-        viewModelScope.launch {
-            val result = authRepository.signInAnonymously()
-            _uiState.value = if (result.isSuccess) {
-                LoginUiState.Success(result.getOrNull()!!)
-            } else {
-                LoginUiState.Error(result.exceptionOrNull()?.message ?: "Error with anonymous sign in")
-            }
-        }
-    }
-
     fun resetState() {
         _uiState.value = LoginUiState.Initial
     }
