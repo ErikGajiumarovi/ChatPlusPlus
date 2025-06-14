@@ -12,6 +12,7 @@ class AuthRepository(private val firebaseClient: NewFirebaseClient) {
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
     suspend fun initialize() {
+        println("Initializing AuthRepository | ${firebaseClient.getCurrentUser()?.email}")
         _currentUser.value = firebaseClient.getCurrentUser()
     }
 

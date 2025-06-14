@@ -25,6 +25,7 @@ object AppModule {
 
     // Делаем метод публичным для доступа из KoinApplication
     fun appModule(): Module = module {
+        initialize()
         // Firebase client
         single { NewFirebaseClient() }
 
@@ -38,3 +39,5 @@ object AppModule {
         factory { (chatId: String) -> ChatViewModel(chatId, get(), get()) }
     }
 }
+
+

@@ -192,7 +192,7 @@ class NewFirebaseClient {
                 if (error != null) {
                     // This will now show the specific 'Flow was aborted...' error if it still happens
                     println("Flow observation completed with error: ${error.message}")
-                    error.printStackTrace() // Print stack trace if it's a different error
+//                    error.printStackTrace() // Print stack trace if it's a different error
                 } else {
                     println("Flow observation completed normally.")
                 }
