@@ -71,11 +71,15 @@ class ChatViewModel(
                 messagesRepository.markChatAsRead(chatId)
 
                 messagesRepository.observeMessages(chatId).collectLatest { messages ->
-                    val decryptedMessages = messages.map { message: Message ->
-                        val decryptedContent = aesCrypto?.decrypt(message.content) ?: message.content
-                        message.copy(content = decryptedContent)
+                    val processedMessages = messages.map { message: Message ->
+                        if (message.isEncrypted) {
+                            val decryptedContent = aesCrypto?.decrypt(message.content) ?: message.content
+                            message.copy(content = decryptedContent)
+                        } else {
+                            message
+                        }
                     }
-                    _uiState.value = ChatUiState.Success(decryptedMessages)
+                    _uiState.value = ChatUiState.Success(processedMessages)
                 }
             } catch (e: Exception) {
                 _uiState.value = ChatUiState.Error(e.message ?: "Unknown error")
@@ -92,8 +96,13 @@ class ChatViewModel(
         if (messageContent.isBlank()) return
 
         viewModelScope.launch {
-            val encryptedContent = aesCrypto?.encrypt(messageContent) ?: messageContent
-            val result = messagesRepository.sendMessage(chatId, encryptedContent)
+            val result: Result<Unit>
+            if (aesCrypto != null) {
+                val encryptedContent = aesCrypto?.encrypt(messageContent) ?: messageContent
+                result = messagesRepository.sendMessage(chatId, true, encryptedContent)
+            } else {
+                result = messagesRepository.sendMessage(chatId, false, messageContent)
+            }
             if (result.isSuccess) {
                 _messageInput.value = ""
             } else {

@@ -1,21 +1,21 @@
 package data.repository
 
-import data.FirebaseClient
 import data.NewFirebaseClient
+import data.model.Chat
 import data.model.Message
 import data.model.User
-import data.model.Chat
 import kotlinx.coroutines.flow.Flow
 
 class MessagesRepository(private val firebaseClient: NewFirebaseClient) {
 
-    suspend fun sendMessage(chatId: String, content: String): Result<Unit> {
+    suspend fun sendMessage(chatId: String, enc: Boolean, content: String): Result<Unit> {
         return try {
-            val currentUser = firebaseClient.getCurrentUser() ?:
-                return Result.failure(Exception("User not authenticated"))
+            val currentUser =
+                firebaseClient.getCurrentUser() ?: return Result.failure(Exception("User not authenticated"))
 
             val message = Message(
                 chatId = chatId,
+                isEncrypted = enc,
                 senderEmail = currentUser.email,
                 content = content
             )
@@ -55,8 +55,8 @@ class MessagesRepository(private val firebaseClient: NewFirebaseClient) {
 
     suspend fun markChatAsRead(chatId: String): Result<Unit> {
         return try {
-            val currentUser = firebaseClient.getCurrentUser() ?:
-                return Result.failure(Exception("User not authenticated"))
+            val currentUser =
+                firebaseClient.getCurrentUser() ?: return Result.failure(Exception("User not authenticated"))
 
             firebaseClient.markChatAsRead(chatId, currentUser.email)
             Result.success(Unit)
