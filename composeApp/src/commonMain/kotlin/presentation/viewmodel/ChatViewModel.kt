@@ -73,8 +73,12 @@ class ChatViewModel(
                 messagesRepository.observeMessages(chatId).collectLatest { messages ->
                     val processedMessages = messages.map { message: Message ->
                         if (message.isEncrypted) {
-                            val decryptedContent = aesCrypto?.decrypt(message.content) ?: message.content
-                            message.copy(content = decryptedContent)
+                            try {
+                                val decryptedContent = aesCrypto?.decrypt(message.content) ?: message.content
+                                message.copy(content = decryptedContent)
+                            } catch (e: Exception) {
+                                message.copy(content = "decrypt error")
+                            }
                         } else {
                             message
                         }
