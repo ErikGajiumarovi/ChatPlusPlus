@@ -77,16 +77,49 @@ fun ChatScreen(
         }
     }
 
+    var showEncryptionDialog by remember { mutableStateOf(false) }
+    var encryptionKeyInput by remember { mutableStateOf("") }
+
+    if (showEncryptionDialog) {
+        AlertDialog(
+            onDismissRequest = { showEncryptionDialog = false },
+            title = { Text("Set Encryption Key") },
+            text = {
+                TextField(
+                    value = encryptionKeyInput,
+                    onValueChange = { encryptionKeyInput = it },
+                    label = { Text("Encryption Key") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setEncryptionKey(encryptionKeyInput)
+                    showEncryptionDialog = false
+                }) {
+                    Text("Set")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEncryptionDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(chatDisplayName ?: "Chat") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(AppIcons.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showEncryptionDialog = true }) {
+                        Icon(AppIcons.Encryption, contentDescription = "Set Encryption Key")
                     }
                 }
             )
@@ -280,5 +313,3 @@ private fun EmptyChatMessage(modifier: Modifier = Modifier) {
         )
     }
 }
-
-

@@ -26,7 +26,6 @@ class MainActivity : ComponentActivity() {
         println("Decrypted: $decrypted")
 
 
-        AESCrypto
         setContent {
             App()
         }

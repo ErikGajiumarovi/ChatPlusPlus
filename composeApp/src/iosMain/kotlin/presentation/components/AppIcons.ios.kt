@@ -146,4 +146,45 @@ actual object AppIcons {
             close()
         }
     }.build()
+
+    // Иконка шифрования
+    actual val Encryption: ImageVector = ImageVector.Builder(
+        name = "encryption",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = SolidColor(Color.Black),
+            pathFillType = PathFillType.NonZero,
+            strokeLineWidth = 0.0f,
+            strokeLineCap = StrokeCap.Butt,
+            strokeLineJoin = StrokeJoin.Miter,
+            strokeLineMiter = 4.0f
+        ) {
+            moveTo(12f, 1f)
+            curveTo(9.24f, 1f, 7f, 3.24f, 7f, 6f)
+            verticalLineTo(9f)
+            horizontalLineTo(5f)
+            curveTo(3.9f, 9f, 3f, 9.9f, 3f, 11f)
+            verticalLineTo(20f)
+            curveTo(3f, 21.1f, 3.9f, 22f, 5f, 22f)
+            horizontalLineTo(19f)
+            curveTo(20.1f, 22f, 21f, 21.1f, 21f, 20f)
+            verticalLineTo(11f)
+            curveTo(21f, 9.9f, 20.1f, 9f, 19f, 9f)
+            horizontalLineTo(17f)
+            verticalLineTo(6f)
+            curveTo(17f, 3.24f, 14.76f, 1f, 12f, 1f)
+            close()
+            moveTo(12f, 3f)
+            curveTo(13.66f, 3f, 15f, 4.34f, 15f, 6f)
+            verticalLineTo(9f)
+            horizontalLineTo(9f)
+            verticalLineTo(6f)
+            curveTo(9f, 4.34f, 10.34f, 3f, 12f, 3f)
+            close()
+        }
+    }.build()
 }

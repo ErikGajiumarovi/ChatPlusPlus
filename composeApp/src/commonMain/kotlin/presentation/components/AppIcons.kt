@@ -8,4 +8,5 @@ expect object AppIcons {
     val ArrowBack: ImageVector
     val ExitToApp: ImageVector
     val Send: ImageVector
+    val Encryption: ImageVector
 }

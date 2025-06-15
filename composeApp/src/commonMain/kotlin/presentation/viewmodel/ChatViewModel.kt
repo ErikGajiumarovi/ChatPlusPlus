@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import util.AESCrypto
 
 class ChatViewModel(
     private val chatId: String,
@@ -28,6 +29,9 @@ class ChatViewModel(
     private val _chatData = MutableStateFlow<Chat?>(null)
     val chatData: StateFlow<Chat?> = _chatData.asStateFlow()
 
+    private var encryptionKey: String? = null
+    private var aesCrypto: AESCrypto? = null
+
     init {
         // Устанавливаем текущий чат как активный
         ActiveChatTracker.setActiveChat(chatId)
@@ -36,10 +40,17 @@ class ChatViewModel(
         loadChatData()
     }
 
+    fun setEncryptionKey(key: String) {
+        encryptionKey = key
+        aesCrypto = AESCrypto(key)
+    }
+
     override fun onCleared() {
         super.onCleared()
         // Когда ViewModel уничтожается (чат закрывается), сбрасываем активный чат
         ActiveChatTracker.setActiveChat(null)
+        encryptionKey = null
+        aesCrypto = null
     }
 
     private fun loadChatData() {
@@ -60,7 +71,11 @@ class ChatViewModel(
                 messagesRepository.markChatAsRead(chatId)
 
                 messagesRepository.observeMessages(chatId).collectLatest { messages ->
-                    _uiState.value = ChatUiState.Success(messages)
+                    val decryptedMessages = messages.map { message: Message ->
+                        val decryptedContent = aesCrypto?.decrypt(message.content) ?: message.content
+                        message.copy(content = decryptedContent)
+                    }
+                    _uiState.value = ChatUiState.Success(decryptedMessages)
                 }
             } catch (e: Exception) {
                 _uiState.value = ChatUiState.Error(e.message ?: "Unknown error")
@@ -77,7 +92,8 @@ class ChatViewModel(
         if (messageContent.isBlank()) return
 
         viewModelScope.launch {
-            val result = messagesRepository.sendMessage(chatId, messageContent)
+            val encryptedContent = aesCrypto?.encrypt(messageContent) ?: messageContent
+            val result = messagesRepository.sendMessage(chatId, encryptedContent)
             if (result.isSuccess) {
                 _messageInput.value = ""
             } else {
@@ -99,4 +115,3 @@ sealed class ChatUiState {
     data class Success(val messages: List<Message>) : ChatUiState()
     data class Error(val message: String) : ChatUiState()
 }
-

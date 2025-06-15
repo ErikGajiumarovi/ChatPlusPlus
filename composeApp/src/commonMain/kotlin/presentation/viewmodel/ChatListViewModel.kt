@@ -101,3 +101,5 @@ sealed class ChatListUiState {
     data class Success(val chats: List<Chat>) : ChatListUiState()
     data class Error(val message: String) : ChatListUiState()
 }
+
+
