@@ -99,3 +99,4 @@ sealed class ChatUiState {
     data class Success(val messages: List<Message>) : ChatUiState()
     data class Error(val message: String) : ChatUiState()
 }
+
