@@ -553,19 +553,3 @@ class AESCrypto {
         return result.toByteArray()
     }
 }
-
-// Пример использования:
-/*
-fun main() {
-    val aes = AESCrypto("mySecretKey12345")
-
-    val plaintext = "Привет, мир! Это тестовое сообщение для AES шифрования."
-    println("Исходный текст: $plaintext")
-
-    val encrypted = aes.encrypt(plaintext)
-    println("Зашифрованный текст (Base64): $encrypted")
-
-    val decrypted = aes.decrypt(encrypted)
-    println("Расшифрованный текст: $decrypted")
-}
-*/

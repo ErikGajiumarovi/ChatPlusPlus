@@ -34,7 +34,7 @@ kotlin {
     }
     
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -93,4 +93,5 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
+
 
